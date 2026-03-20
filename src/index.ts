@@ -1,8 +1,8 @@
 import express from "express";
-import { config } from "./config";
-import { auth } from "./middleware/auth";
-import { rateLimit } from "./middleware/rateLimit";
-import { proxy } from "./proxy";
+import { config } from "./config.js";
+import { auth } from "./middleware/auth.js";
+import { rateLimit } from "./middleware/rateLimit.js";
+import { proxy } from "./proxy.js";
 
 const app = express();
 

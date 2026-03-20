@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { config } from "../config";
+import { config } from "../config.js";
 
 export function auth(req: Request, res: Response, next: NextFunction) {
     const token =

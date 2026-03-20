@@ -1,4 +1,4 @@
-import { config } from "./config";
+import { config } from "./config.js";
 
 export async function proxy(req: any, res: any) {
     const url = config.target + req.originalUrl;
