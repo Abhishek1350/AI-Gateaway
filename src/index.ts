@@ -6,7 +6,13 @@ import { proxy } from "./proxy.js";
 
 const app = express();
 
-app.use(express.json({ limit: "10mb" }));
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/v1")) {
+        return next();
+    }
+    express.json()(req, res, next);
+});
+
 
 app.get("/", (_, res) => {
     res.setHeader("Content-Type", "text/html");
