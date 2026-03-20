@@ -1,0 +1,25 @@
+{
+  "name": "ai-gateaway",
+  "version": "1.0.0",
+  "description": "Providing a single, unified interface for accessing multiple models",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "author": {
+    "name": "Abhishek B",
+    "url": "https://github.com/abhishek1350"
+  },
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
