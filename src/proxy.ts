@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { config } from "./config.js";
 
 export async function proxy(req: any, res: any) {
@@ -6,42 +7,61 @@ export async function proxy(req: any, res: any) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 300000);
 
+  const headers: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (!value) continue;
+
+    const k = key.toLowerCase();
+
+    // skip problematic headers
+    if (
+      k === "host" ||
+      k === "content-length" ||
+      k === "transfer-encoding" ||
+      k === "connection"
+    ) {
+      continue;
+    }
+
+    // @ts-ignore
+    headers[key] = Array.isArray(value) ? value.join(",") : value;
+  }
+
   try {
     const upstream = await fetch(url, {
       method: req.method,
-      headers: {
-        ...req.headers,
-        host: undefined,
-        "content-length": undefined,
-      },
-      body:
-        req.method === "GET" || req.method === "HEAD"
-          ? undefined
-          : req,
+      headers,
+      body: req.method === "GET" || req.method === "HEAD" ? undefined : req,
+      // @ts-ignore
+      duplex: "half",
       signal: controller.signal,
     });
 
     res.status(upstream.status);
 
     upstream.headers.forEach((value, key) => {
-      if (key.toLowerCase() === "transfer-encoding") return;
+      const k = key.toLowerCase();
+
+      if (
+        k === "transfer-encoding" ||
+        k === "content-length" ||
+        k === "connection" ||
+        k === "content-encoding"
+      )
+        return;
+
       res.setHeader(key, value);
     });
 
-    res.setHeader("Connection", "keep-alive");
-
     if (upstream.body) {
-      const reader = upstream.body.getReader();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        res.write(value);
-      }
+      const nodeStream = Readable.fromWeb(upstream.body as any);
+      nodeStream.pipe(res);
+    } else {
+      res.end();
     }
-
-    res.end();
   } catch (err: any) {
+    console.error("Proxy error:", err);
     if (err.name === "AbortError") {
       return res.status(504).json({ error: "Upstream timeout" });
     }
@@ -49,6 +69,7 @@ export async function proxy(req: any, res: any) {
     return res.status(500).json({
       error: "Proxy error",
       details: err.message,
+      cause: err.cause?.message || err.cause,
     });
   } finally {
     clearTimeout(timeout);
