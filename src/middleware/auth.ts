@@ -9,7 +9,7 @@ export function auth(req: Request, res: Response, next: NextFunction) {
     const key = config.apiKeys.find((k) => k.key === token);
 
     if (!key) {
-        return res.status(401).json({ error: "Invalid API key" });
+        return res.status(401).json({ error: "Invalid Request" });
     }
 
     (req as any).apiKey = key;
